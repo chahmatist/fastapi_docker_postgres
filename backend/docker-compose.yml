@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  backend:
+    container_name: backend
+    build: .
+    volumes:
+      - .:/code
+      - /var/run/docker.sock:/var/run/docker.sock
+    env_file:
+      - .env
+    command: uvicorn app.main:app --reload --host ${SERVER_HOST} --port ${SERVER_PORT}
+    ports:
+      - "${SERVER_PORT}:${SERVER_PORT}"
+    depends_on:
+      - db
+
+  db:
+    container_name: db_postgresql
+    image: postgres:${POSTGRES_VERSION}
+    volumes:
+      - postgres_data_db:/var/lib/postgresql/data/
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    env_file:
+      - .env
+    environment:
+      PGDATA: /var/lib/postgresql/data/
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "5050:8080"
+    depends_on:
+      - db
+
+volumes:
+  postgres_data_db:
